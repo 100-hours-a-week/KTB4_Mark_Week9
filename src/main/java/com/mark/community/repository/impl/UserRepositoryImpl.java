@@ -67,4 +67,10 @@ public class UserRepositoryImpl implements UserRepository {
 
         return Optional.empty();
     }
+
+    @Override
+    public boolean existByUser(String userId) {
+        User user = users.get(userId);
+        return user != null && !user.isDeleted();
+    }
 }

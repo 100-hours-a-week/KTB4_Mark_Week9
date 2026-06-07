@@ -1,7 +1,6 @@
 package com.mark.community.repository;
 
 import com.mark.community.entity.UploadFile;
-import com.mark.community.entity.User;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;

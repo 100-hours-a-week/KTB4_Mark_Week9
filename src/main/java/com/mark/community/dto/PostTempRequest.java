@@ -7,7 +7,6 @@ public class PostTempRequest {
     public String getTitle() {
         return title;
     }
-
     public String getBody() {
         return body;
     }

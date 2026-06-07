@@ -18,10 +18,12 @@ import java.util.List;
 public class PostService {
     private final PostRepository postRepository;
     private final FileService fileService;
+    private final UserService userService;
 
-    public PostService(PostRepository postRepository, FileService fileService){
+    public PostService(PostRepository postRepository, FileService fileService, UserService userService){
         this.postRepository = postRepository;
         this.fileService = fileService;
+        this.userService = userService;
     }
 
     public Post postTemp(PostTempRequest request, User user) {
@@ -49,6 +51,8 @@ public class PostService {
                 orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
         post.setFileIds(tempList);
+        post.setTitle(request.getTitle());
+        post.setBody(request.getBody());
 
         postRepository.save(post);
 
@@ -73,6 +77,8 @@ public class PostService {
 
         post.setViews(post.getViews() + 1);
         postRepository.save(post);
+
+        if(!userService.existUser(post.getUserId())) post.setNickname("알 수 없음"); ;
 
         return post;
     }
@@ -103,7 +109,13 @@ public class PostService {
     }
 
     public List<Post> getPosts(int size, String lastPostId) {
-       return postRepository.findAllOrderByPostTime(size, lastPostId);
+        List<Post> posts = postRepository.findAllOrderByPostTime(size, lastPostId);
+        for(Post post : posts){
+            if(!userService.existUser(post.getUserId())){
+                post.setNickname("알 수 없음");
+            }
+        }
+       return posts;
     }
 
 
@@ -125,7 +137,7 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public Post editPost(String postId, PostTempRequest request, MultipartFile[] images) {
+    public Post editPost(String postId, PostTempRequest request, MultipartFile[] images, String userId) {
         List<String> tempList = new ArrayList<>();
 
         if(images != null){
@@ -136,7 +148,12 @@ public class PostService {
         Post post = postRepository.findById(postId).
                 orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
+        if(!post.getUserId().equals(userId)){
+            throw new CustomException(ApiResponseErrorMessage.FORBIDDEN);
+        }
+
         post.setFileIds(tempList);
+        post.setEdited(true);
 
         if(!request.getTitle().isBlank()) post.setTitle(request.getTitle());
 
@@ -152,5 +169,6 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
         post.setReports(post.getReports() + 1);
+        postRepository.save(post);
     }
 }

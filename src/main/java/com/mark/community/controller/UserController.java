@@ -37,14 +37,17 @@ public class UserController {
         }
 
         @PatchMapping
-        public ResponseEntity<?> editUser(@RequestBody EditUserRequest request, HttpServletRequest httpRequest){
+        public ResponseEntity<?> editUser(
+                @RequestPart("request") EditUserRequest request,
+                @RequestPart("image") MultipartFile image,
+                HttpServletRequest httpRequest){
             HttpSession session = httpRequest.getSession(false);
             if(session == null){
                 throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
             }
             User user = (User) session.getAttribute("user");
 
-            userService.editUser(request, user.getUserId());
+            userService.editUser(request, image, user.getUserId());
 
             return ResponseEntity
                     .status(ApiResponseMessage.SUCCESS_UPDATE_USER.getStatusCode())

@@ -55,7 +55,7 @@ public class PostController {
     }
 
     @PatchMapping("/{postId}/temp")
-    public ResponseEntity<?> postAutoTemp(@PathVariable String postId,
+    public ResponseEntity<?> postAutoTemp(@PathVariable("postId") String postId,
                                           @RequestPart("request") PostTempRequest request,
                                           @RequestPart("images") MultipartFile[] images,
                                           HttpServletRequest httpRequest
@@ -74,7 +74,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<?> deletePost(@PathVariable String postId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> deletePost(@PathVariable("postId") String postId, HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 
         if(session == null){
@@ -90,7 +90,7 @@ public class PostController {
     }
 
     @GetMapping("/temp")
-    public ResponseEntity<?> getTempPost(@RequestParam String postId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> getTempPost(@RequestParam("postId") String postId, HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 
         if(session == null){
@@ -105,7 +105,7 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<?> getPost(@PathVariable String postId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> getPost(@PathVariable("postId") String postId, HttpServletRequest httpRequest){
 
         HttpSession session = httpRequest.getSession(false);
 
@@ -117,9 +117,10 @@ public class PostController {
 
         Post post = postService.getPost(postId);
 
-        boolean isEdited = user.getUserId().equals(post.getUserId());
+        boolean permission = user.getUserId().equals(post.getUserId());
 
         Counts counts = new Counts(post.getLikes(), post.getComments(), post.getViews());
+
         PostResponse postResponse = new PostResponse(
                     post.getPostId(),
                     post.getTitle(),
@@ -129,7 +130,8 @@ public class PostController {
                     post.getUserId(),
                     counts,
                     post.getFileIds(),
-                    isEdited
+                    post.isEdited(),
+                    permission
         );
 
 
@@ -139,8 +141,8 @@ public class PostController {
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<?> savePost(@PathVariable String postId,
-                                      @RequestPart("postRequest") PostRequest postRequest,
+    public ResponseEntity<?> savePost(@PathVariable("postId") String postId,
+                                      @RequestPart("request") PostRequest request,
                                       @RequestPart("images") MultipartFile[] images,
                                       HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
@@ -149,7 +151,7 @@ public class PostController {
             throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
         }
 
-        Post post = postService.savePost(postId, postRequest, images);
+        Post post = postService.savePost(postId, request, images);
 
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_POST_SAVE.getStatusCode())
@@ -158,8 +160,8 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getPosts(@RequestParam(defaultValue = "10") int size,
-                                      @RequestParam String lastPostId,
+    public ResponseEntity<?> getPosts(@RequestParam(value = "size", defaultValue = "10") int size,
+                                      @RequestParam("lastPostId") String lastPostId,
                                       HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 
@@ -204,7 +206,7 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/likes")
-    public ResponseEntity<?> addLike(@PathVariable String postId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> addLike(@PathVariable("postId") String postId, HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 
         if(session == null){
@@ -220,7 +222,7 @@ public class PostController {
 
 
     @DeleteMapping("/{postId}/likes")
-    public ResponseEntity<?> deleteLike(@PathVariable String postId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> deleteLike(@PathVariable("postId") String postId, HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 
         if(session == null){
@@ -235,7 +237,7 @@ public class PostController {
     }
 
     @PatchMapping("/{postId}")
-    public ResponseEntity<?> editPost(@PathVariable String postId,
+    public ResponseEntity<?> editPost(@PathVariable("postId") String postId,
                                           @RequestPart("request") PostTempRequest request,
                                           @RequestPart("images") MultipartFile[] images,
                                           HttpServletRequest httpRequest
@@ -245,16 +247,18 @@ public class PostController {
         if(session == null){
             throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
         }
-        Post post = postService.editPost(postId, request, images);
+        User user = (User) session.getAttribute("user");
+
+
+        Post post = postService.editPost(postId, request, images, user.getUserId());
 
         return ResponseEntity
-                .status(ApiResponseMessage.SUCCESS_POST_TEMP.getStatusCode())
-                .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_POST_TEMP,
-                        new PostTempResponse(postId, post.getFileIds())));
+                .status(ApiResponseMessage.SUCCESS_UPDATE_POST.getStatusCode())
+                .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_UPDATE_POST));
     }
 
     @PostMapping("/{postId}/reports")
-    public ResponseEntity<?> addReports(@PathVariable String postId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> addReports(@PathVariable("postId") String postId, HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 
         if(session == null){

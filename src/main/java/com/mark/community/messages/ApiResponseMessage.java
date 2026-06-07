@@ -13,6 +13,7 @@ public enum ApiResponseMessage {
     SUCCESS_GET_POST_TEMP("임시 게시글 조회에 성공했습니다.", HttpStatus.OK),
     SUCCESS_GET_POST("게시글 상세 조회에 성공했습니다.", HttpStatus.OK),
     SUCCESS_GET_POSTS("게시글 목록을 성공적으로 불러왔습니다.", HttpStatus.OK),
+    SUCCESS_UPDATE_POST("게시글 수정에 성공했습니다.", HttpStatus.OK),
     SUCCESS_COMMENT_SAVE("댓글 생성에 성공했습니다.", HttpStatus.OK),
     SUCCESS_UPDATE_COMMENT("댓글 수정에 성공했습니다.", HttpStatus.OK),
     SUCCESS_DELETE_COMMENT("댓글 삭제에 성공했습니다.", HttpStatus.OK),

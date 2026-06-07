@@ -9,6 +9,7 @@ import com.mark.community.messages.ApiResponseErrorMessage;
 import com.mark.community.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -52,19 +53,28 @@ public class UserService {
 
     }
 
-    public void editUser(EditUserRequest request, String userId){
+    public void editUser(@RequestPart("request") EditUserRequest request, MultipartFile image , String userId){
         User user = userRepository.findById(userId).
                 orElseThrow(() -> new CustomException(ApiResponseErrorMessage.USER_NOT_FOUND));
 
+        String fileId = null;
+        if(image != null){
+            fileId = fileService.upload(image);
+        }
+
+
         if(request.getPassword() == null && !request.getNickname().isBlank()){
+            if(fileId != null && !fileId.isBlank()){
+                user.setProfileImage(fileId);
+            }
             user.setNickname(request.getNickname());
             userRepository.save(user);
         } else if(request.getNickname() == null && !request.getPassword().isBlank()) {
             user.setPassword(request.getPassword());
             userRepository.save(user);
+        } else {
+            throw new CustomException(ApiResponseErrorMessage.INVALID_REQUEST);
         }
-
-        throw new CustomException(ApiResponseErrorMessage.INVALID_REQUEST);
     }
 
     public void deleteUser(String userId) {
@@ -72,5 +82,10 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.USER_NOT_FOUND));
         user.setDeleted(true);
         userRepository.save(user);
+    }
+
+    public boolean existUser(String userId){
+        return userRepository.existByUser(userId);
+
     }
 }

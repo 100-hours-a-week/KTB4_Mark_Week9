@@ -100,6 +100,8 @@ public class Post {
         this.reports = reports;
     }
 
+
+
     public boolean isEdited() {
         return edited;
     }
@@ -147,6 +149,8 @@ public class Post {
     public Date getPostTime() {
         return postTime;
     }
+
+
 
     public int getReports() {
         return reports;

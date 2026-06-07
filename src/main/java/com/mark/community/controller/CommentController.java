@@ -29,7 +29,7 @@ public class CommentController {
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<?> commentSave(
             @RequestBody CommentRequest request,
-            @RequestParam String postId,
+            @PathVariable("postId") String postId,
             HttpServletRequest httpRequest) {
         HttpSession session = httpRequest.getSession(false);
 
@@ -78,7 +78,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable String commentId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> deleteComment(@PathVariable("commentId") String commentId, HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 
         if(session == null){
@@ -95,7 +95,7 @@ public class CommentController {
 
 
     @GetMapping("/posts/{postId}/comments")
-    public ResponseEntity<?> getComments(@PathVariable String postId, HttpServletRequest httpRequest){
+    public ResponseEntity<?> getComments(@PathVariable("postId") String postId, HttpServletRequest httpRequest){
 
         HttpSession session = httpRequest.getSession(false);
 

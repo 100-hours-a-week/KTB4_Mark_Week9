@@ -55,7 +55,9 @@ public class PostRepositoryImpl implements PostRepository {
         Set<String> postKeySet = posts.keySet();
 
         for(String key : postKeySet){
-            postsData.add(posts.get(key));
+            Post post = posts.get(key);
+            if(post.isTemp() || post.isDeleted()) continue;
+            postsData.add(post);
             if(postsData.size() == size) break;
         }
 

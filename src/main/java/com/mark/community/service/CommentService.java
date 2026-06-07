@@ -26,7 +26,7 @@ public class CommentService {
                 user.getUserId(),
                 request.getComment(),
                 new Date(),
-                request.getComment(),
+                user.getNickname(),
                 request.getParentCommentId());
         commentRepository.save(comment);
 

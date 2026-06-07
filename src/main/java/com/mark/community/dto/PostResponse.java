@@ -1,7 +1,10 @@
 package com.mark.community.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostResponse {
     private String postId;
     private String title;
@@ -15,6 +18,7 @@ public class PostResponse {
     private boolean deleted;
     private boolean blind;
     private boolean edited;
+    private boolean permission;
 
     public PostResponse(String postId){
         this.postId = postId;
@@ -28,7 +32,8 @@ public class PostResponse {
                         String userId,
                         Counts counts,
                         List<String> fileIds,
-                        boolean edited) {
+                        boolean edited,
+                        boolean permission){
         this.postId = postId;
         this.title = title;
         this.body = body;
@@ -38,6 +43,7 @@ public class PostResponse {
         this.counts = counts;
         this.fileIds = fileIds;
         this.edited = edited;
+        this.permission = permission;
     }
 
     public PostResponse(String postId,
@@ -49,8 +55,7 @@ public class PostResponse {
                         Counts counts,
                         String postTime,
                         boolean deleted,
-                        boolean blind
-    ) {
+                        boolean blind){
         this.postId = postId;
         this.title = title;
         this.body = body;
@@ -59,7 +64,6 @@ public class PostResponse {
         this.userId = userId;
         this.counts = counts;
         this.postTime = postTime;
-        this.edited = edited;
         this.deleted = deleted;
         this.blind = blind;
     }
@@ -69,7 +73,6 @@ public class PostResponse {
     }
 
     private List<String> fileIds;
-
 
 
     public String getTitle() {
@@ -118,5 +121,9 @@ public class PostResponse {
 
     public String getPostTime(){
         return postTime;
+    }
+
+    public boolean isPermission() {
+        return permission;
     }
 }

@@ -40,8 +40,10 @@ public class CommentRepositoryImpl implements CommentRepository {
     @Override
     public Comment save(Comment comment) {
         String commentId = "C" + nextCommentId++;
+        comment.setCommentId(commentId);
+        comments.put(commentId, comment);
         saveJson();
-        return comments.put(commentId, comment);
+        return comment;
     }
 
     @Override

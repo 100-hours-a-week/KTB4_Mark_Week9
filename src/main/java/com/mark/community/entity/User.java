@@ -22,6 +22,7 @@ public class User {
         this.profileImage = profileImage;
     }
 
+
     public User(){
 
     }
@@ -40,6 +41,14 @@ public class User {
 
     public void setDeleted(boolean deleted){
         this.deleted = deleted;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 
     public String getEmail(){
