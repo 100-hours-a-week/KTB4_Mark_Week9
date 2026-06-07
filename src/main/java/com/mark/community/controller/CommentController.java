@@ -58,8 +58,8 @@ public class CommentController {
 
     @PatchMapping("/comments/{commentId}")
     public ResponseEntity<?> editComment(
-            @PathVariable String commentId,
-            @RequestBody CommentRequest commentRequest,
+            @PathVariable("commentId") String commentId,
+            @RequestBody CommentRequest request,
             HttpServletRequest httpRequest
     ){
         HttpSession session = httpRequest.getSession(false);
@@ -69,7 +69,7 @@ public class CommentController {
         }
         User user = (User) session.getAttribute("user");
 
-        Comment comment = commentService.editComment(commentId, commentRequest, user);
+        Comment comment = commentService.editComment(commentId, request, user);
 
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_UPDATE_COMMENT.getStatusCode())

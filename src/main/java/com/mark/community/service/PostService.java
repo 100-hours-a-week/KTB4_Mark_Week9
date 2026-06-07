@@ -109,7 +109,8 @@ public class PostService {
     }
 
     public List<Post> getPosts(int size, String lastPostId) {
-        List<Post> posts = postRepository.findAllOrderByPostTime(size, lastPostId);
+        List<Post> posts = postRepository.findAllOrderByPostTime(size, lastPostId)
+                .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
         for(Post post : posts){
             if(!userService.existUser(post.getUserId())){
                 post.setNickname("알 수 없음");

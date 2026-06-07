@@ -50,7 +50,7 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> findAllOrderByPostTime(int size, String lastPostId) {
+    public Optional<List<Post>> findAllOrderByPostTime(int size, String lastPostId) {
         List<Post> postsData = new ArrayList<>();
         Set<String> postKeySet = posts.keySet();
 
@@ -61,7 +61,7 @@ public class PostRepositoryImpl implements PostRepository {
             if(postsData.size() == size) break;
         }
 
-        return postsData;
+        return Optional.ofNullable(postsData);
     }
 
 }

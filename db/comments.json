@@ -1,1 +1,1 @@
-[{"comment":"댓글입니다.","commentId":"C1","commentTime":"2026-06-07T08:46:02.930Z","deleted":false,"nickname":"juseungseung","parentCommentId":null,"postId":"P10","userId":"U3"},{"comment":"댓글입니다.","commentId":"C2","commentTime":"2026-06-07T08:51:16.718Z","deleted":false,"nickname":"juseungseung","parentCommentId":null,"postId":"P10","userId":"U3"}]
+[{"comment":"수정된 댓글입니다2.","commentId":"C1","commentTime":"2026-06-07T09:49:37.650Z","deleted":true,"nickname":"juseungseung","parentCommentId":null,"postId":"P10","userId":"U2"}]
