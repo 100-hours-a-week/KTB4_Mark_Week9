@@ -24,6 +24,18 @@ public class Post {
     private boolean edited;
     private boolean temp = true;
 
+    public Post(String title, String body, String thumbnailId, String nickname, String userId) {
+        this.title = title;
+        this.body = body;
+        this.thumbnailId = thumbnailId;
+        this.nickname = nickname;
+        this.userId = userId;
+    }
+
+    public Post(){
+
+    }
+
     public void setFileIds(List<String> fileIds) {
         this.fileIds = fileIds;
     }
@@ -156,17 +168,7 @@ public class Post {
         return reports;
     }
 
-    public Post(String title, String body, String thumbnailId, String nickname, String userId) {
-        this.title = title;
-        this.body = body;
-        this.thumbnailId = thumbnailId;
-        this.nickname = nickname;
-        this.userId = userId;
-    }
 
-    public Post(){
-
-    }
 
 
 }

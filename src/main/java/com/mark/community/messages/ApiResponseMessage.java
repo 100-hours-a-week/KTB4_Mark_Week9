@@ -19,7 +19,7 @@ public enum ApiResponseMessage {
     SUCCESS_DELETE_COMMENT("댓글 삭제에 성공했습니다.", HttpStatus.OK),
     SUCCESS_GET_COMMENTS("댓글을 불러오는데 성공했습니다.", HttpStatus.OK),
     SUCCESS_ADD_LIKE("좋아요에 성공했습니다.", HttpStatus.OK),
-    SUCCESS_DELETE_LIKE("좋아요에 성공했습니다.", HttpStatus.OK),
+    SUCCESS_DELETE_LIKE("좋아요 삭제에 성공했습니다.", HttpStatus.OK),
     SUCCESS_ADD_REPORT("신고에 성공했습니다.", HttpStatus.OK);
 
     private final String message;
