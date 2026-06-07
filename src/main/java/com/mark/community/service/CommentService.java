@@ -66,7 +66,15 @@ public class CommentService {
     }
 
     public List<Comment> getComments(String postId) {
-        return commentRepository.findByPostIdLike(postId)
+        List<Comment> comments = commentRepository.findByPostIdLike(postId)
                 .orElseThrow(() ->new CustomException(ApiResponseErrorMessage.COMMENT_NOT_FOUND));
+
+        for(Comment comment : comments){
+            if(comment.isDeleted()){
+                comment.setComment("삭제된 댓글입니다.");
+            }
+        }
+
+        return comments;
     }
 }
