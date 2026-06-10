@@ -156,9 +156,9 @@ public class PostService {
         post.setFileIds(tempList);
         post.setEdited(true);
 
-        if(!request.getTitle().isBlank()) post.setTitle(request.getTitle());
+        if(request.getTitle() != null && !request.getTitle().isBlank()) post.setTitle(request.getTitle());
 
-        if(!request.getBody().isBlank()) post.setBody(request.getBody());
+        if(request.getBody() != null && !request.getBody().isBlank()) post.setBody(request.getBody());
 
         postRepository.save(post);
 
