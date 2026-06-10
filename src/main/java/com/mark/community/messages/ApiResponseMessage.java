@@ -8,7 +8,7 @@ public enum ApiResponseMessage {
     SUCCESS_UPDATE_USER("회원정보 변경에 성공했습니다", HttpStatus.OK),
     SUCCESS_DELETE_USER("회원삭제에 성공했습니다.", HttpStatus.OK),
     SUCCESS_POST_TEMP("게시글 임시저장에 성공했습니다.", HttpStatus.CREATED),
-    SUCCESS_POST_SAVE("게시글 저장에 성공했습니다.", HttpStatus.CREATED),
+    SUCCESS_POST_SAVE("게시글 저장에 성공했습니다.", HttpStatus.OK),
     SUCCESS_DELETE_POST("게시글 삭제에 성공했습니다.", HttpStatus.OK),
     SUCCESS_GET_POST_TEMP("임시 게시글 조회에 성공했습니다.", HttpStatus.OK),
     SUCCESS_GET_POST("게시글 상세 조회에 성공했습니다.", HttpStatus.OK),
