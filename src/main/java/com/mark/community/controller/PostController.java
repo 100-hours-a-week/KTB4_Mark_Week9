@@ -97,11 +97,11 @@ public class PostController {
             throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
         }
 
-        Post post = postService.getPost(postId);
+        PostTempResponse postTempResponse = postService.getTempPost(postId);
+
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_GET_POST_TEMP.getStatusCode())
-                .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_GET_POST_TEMP,
-                        new PostTempResponse(postId,post.getTitle(), post.getBody(),post.getFileIds())));
+                .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_GET_POST_TEMP, postTempResponse));
     }
 
     @GetMapping("/{postId}")
@@ -115,24 +115,7 @@ public class PostController {
 
         User user = (User) session.getAttribute("user");
 
-        Post post = postService.getPost(postId);
-
-        boolean permission = user.getUserId().equals(post.getUserId());
-
-        Counts counts = new Counts(post.getLikes(), post.getComments(), post.getViews());
-
-        PostResponse postResponse = new PostResponse(
-                    post.getPostId(),
-                    post.getTitle(),
-                    post.getBody(),
-                    post.getThumbnailId(),
-                    post.getNickname(),
-                    post.getUserId(),
-                    counts,
-                    post.getFileIds(),
-                    post.isEdited(),
-                    permission
-        );
+        PostResponse postResponse = postService.getPost(postId, user);
 
 
         return ResponseEntity
@@ -169,36 +152,8 @@ public class PostController {
             throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
         }
 
-        List<Post> posts = postService.getPosts(size, lastPostId);
-        List<PostResponse> tempList = new ArrayList<>();
+        PostListResponse postListResponse = postService.getPosts(size, lastPostId);
 
-        PostListResponse postListResponse = new PostListResponse();
-
-
-
-        for(Post post : posts){
-            Counts counts = new Counts(post.getLikes(), post.getComments(), post.getViews());
-
-            SimpleDateFormat sd = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-
-            PostResponse postResponse =  new PostResponse(
-                    post.getPostId(),
-                    post.getTitle(),
-                    post.getBody(),
-                    post.getThumbnailId(),
-                    post.getNickname(),
-                    post.getUserId(),
-                    counts,
-                    sd.format(post.getPostTime()),
-                    post.isDeleted(),
-                    post.getReports() >= 5
-            );
-
-            tempList.add(postResponse);
-        }
-
-        postListResponse.setTotal(posts.size());
-        postListResponse.setList(tempList);
 
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_GET_POSTS.getStatusCode())

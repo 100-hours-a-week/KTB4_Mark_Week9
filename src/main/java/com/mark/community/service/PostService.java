@@ -1,7 +1,6 @@
 package com.mark.community.service;
 
-import com.mark.community.dto.PostRequest;
-import com.mark.community.dto.PostTempRequest;
+import com.mark.community.dto.*;
 import com.mark.community.entity.Post;
 import com.mark.community.entity.User;
 import com.mark.community.exception.CustomException;
@@ -10,6 +9,7 @@ import com.mark.community.repository.PostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,16 +71,39 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public Post getPost(String postId) {
+    public PostResponse getPost(String postId, User user) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-        post.setViews(post.getViews() + 1);
+        String userNickname = post.getNickname();
+        boolean permission = user.getUserId().equals(post.getUserId());
+
+        Counts counts = new Counts(post.getLikes(), post.getComments(), post.getViews());
+        if(!userService.existUser(post.getUserId())){
+            userNickname = "알 수 없음";
+        }
+
+        PostResponse postResponse = new PostResponse(
+                post.getPostId(),
+                post.getTitle(),
+                post.getBody(),
+                post.getThumbnailId(),
+                userNickname,
+                post.getUserId(),
+                counts,
+                post.getFileIds(),
+                post.isEdited(),
+                permission
+        );
+
+
+        increasePostViews(post);
         postRepository.save(post);
+        return postResponse;
+    }
 
-        if(!userService.existUser(post.getUserId())) post.setNickname("알 수 없음"); ;
-
-        return post;
+    public void increasePostViews(Post post){
+        post.setViews(post.getViews() + 1);
     }
 
     public Post savePost(String postId, PostRequest postRequest, MultipartFile[] images) {
@@ -108,15 +131,43 @@ public class PostService {
             return postRepository.save(post);
     }
 
-    public List<Post> getPosts(int size, String lastPostId) {
+    public PostListResponse getPosts(int size, String lastPostId) {
         List<Post> posts = postRepository.findAllOrderByPostTime(size, lastPostId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
+
+        List<PostResponse> tempList = new ArrayList<>();
+        PostListResponse postListResponse = new PostListResponse();
+
         for(Post post : posts){
+            String userNickname = post.getNickname();
+
+            Counts counts = new Counts(post.getLikes(), post.getComments(), post.getViews());
+
+            SimpleDateFormat sd = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
             if(!userService.existUser(post.getUserId())){
-                post.setNickname("알 수 없음");
+                userNickname = "알 수 없음";
             }
+
+            PostResponse postResponse =  new PostResponse(
+                    post.getPostId(),
+                    post.getTitle(),
+                    post.getBody(),
+                    post.getThumbnailId(),
+                    userNickname,
+                    post.getUserId(),
+                    counts,
+                    sd.format(post.getPostTime()),
+                    post.isDeleted(),
+                    post.getReports() >= 5
+            );
+
+            tempList.add(postResponse);
         }
-       return posts;
+
+        postListResponse.setTotal(posts.size());
+        postListResponse.setList(tempList);
+       return postListResponse;
     }
 
 
@@ -171,5 +222,12 @@ public class PostService {
 
         post.setReports(post.getReports() + 1);
         postRepository.save(post);
+    }
+
+    public PostTempResponse getTempPost(String postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
+
+        return new PostTempResponse(postId, post.getTitle(), post.getBody(), post.getFileIds());
     }
 }
