@@ -2,13 +2,13 @@ package com.mark.community.dto;
 
 public class CommentRequest {
     private String comment;
-    private String parentCommentId;
+    private Long parentCommentId;
 
     public String getComment() {
         return comment;
     }
 
-    public String getParentCommentId() {
+    public Long getParentCommentId() {
         return parentCommentId;
     }
 

@@ -1,13 +1,14 @@
 package com.mark.community.repository;
 
 import com.mark.community.entity.Comment;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface CommentRepository {
+@Repository
+public interface CommentRepository extends JpaRepository<Comment, Long> {
+    long countByPostId(Long postId);
+    List<Comment> findByPostId(Long postId);
 
-    Optional<Comment> findById (String commentId);
-    Comment save(Comment comment);
-    Optional<List<Comment>> findByPostIdLike(String postId);
 }

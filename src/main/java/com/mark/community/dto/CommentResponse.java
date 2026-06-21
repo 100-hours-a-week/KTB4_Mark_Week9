@@ -2,43 +2,27 @@ package com.mark.community.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Getter
 public class CommentResponse {
-    private String commentId;
+    private Long commentId;
     private String nickname;
     private String comment;
-    private String userId;
+    private Long parentCommentId;
+    private Long userId;
     private boolean deleted;
 
-    public CommentResponse(String commentId){
+    public CommentResponse(Long commentId){
         this.commentId = commentId;
     }
 
-    public CommentResponse(String nickname, String comment, String userId, boolean deleted){
+    public CommentResponse(String nickname, String comment, Long userId, Long parentCommentId , boolean deleted){
         this.nickname = nickname;
         this.comment = comment;
         this.userId = userId;
+        this.parentCommentId = parentCommentId;
         this.deleted = deleted;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public String getCommentId() {
-        return commentId;
     }
 }
