@@ -1,11 +1,16 @@
 package com.mark.community.service;
 
 import com.mark.community.dto.*;
-import com.mark.community.entity.Post;
-import com.mark.community.entity.User;
+import com.mark.community.entity.*;
+import com.mark.community.entity.key.PostLikeId;
+import com.mark.community.entity.key.PostReportId;
+import com.mark.community.entity.key.PostViewId;
 import com.mark.community.exception.CustomException;
 import com.mark.community.messages.ApiResponseErrorMessage;
-import com.mark.community.repository.PostRepository;
+import com.mark.community.repository.*;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,57 +18,75 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class PostService {
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final PostImageRepository postImageRepository;
+    private final LikeRepository likeRepository;
+    private final ViewRepository viewRepository;
+    private final CommentRepository commentRepository;
+    private final PostReportRepository postReportRepository;
     private final FileService fileService;
     private final UserService userService;
 
-    public PostService(PostRepository postRepository, FileService fileService, UserService userService){
+    public PostService(PostRepository postRepository,
+                       UserRepository userRepository,
+                       PostImageRepository postImageRepository,
+                       LikeRepository likeRepository,
+                       ViewRepository viewRepository,
+                       CommentRepository commentRepository,
+                       PostReportRepository postReportRepository,
+                       FileService fileService,
+                       UserService userService){
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
+        this.postImageRepository = postImageRepository;
+        this.likeRepository = likeRepository;
+        this.viewRepository = viewRepository;
+        this.commentRepository = commentRepository;
+        this.postReportRepository = postReportRepository;
         this.fileService = fileService;
         this.userService = userService;
     }
 
-    public Post postTemp(PostTempRequest request, User user) {
-        Post post = new Post(
-                request.getTitle(),
-                request.getBody(),
-                user.getProfileImage(),
-                user.getNickname(),
-                user.getUserId());
-        postRepository.save(post);
-
-        return post;
+    public Post postTemp(PostTempRequest request, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.USER_NOT_FOUND));
+        Post post = new Post(request.getTitle(), request.getBody(), user);
+        return postRepository.save(post);
     }
 
 
-    public Post postAutoTemp(String postId, PostTempRequest request, MultipartFile[] images) {
-        List<String> tempList = new ArrayList<>();
+    public PostTempResponse postAutoTemp(Long postId, PostTempRequest request, MultipartFile[] images) {
+        List<Long> imageList = new ArrayList<>();
+
         if(images != null){
             for(MultipartFile file : images){
-                tempList.add(fileService.upload(file));
+                UploadFile uploadFile = fileService.upload(file);
+                postImageRepository.save(new PostImage(uploadFile.getId(),postId));
+                imageList.add(uploadFile.getId());
             }
         }
 
         Post post = postRepository.findById(postId).
                 orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
-
-        post.setFileIds(tempList);
         post.setTitle(request.getTitle());
         post.setBody(request.getBody());
-
         postRepository.save(post);
 
-        return post;
+
+        return new PostTempResponse(post.getId(), imageList);
     }
 
-    public void deletePost(String postId, String userId) {
+    public void deletePost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-        if(!post.getUserId().equals(userId)){
+        if(!(post.getUser().getId().equals(userId))){
             throw new CustomException(ApiResponseErrorMessage.FORBIDDEN);
         }
 
@@ -71,91 +94,122 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public PostResponse getPost(String postId, User user) {
+    public PostResponse getPost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-        String userNickname = post.getNickname();
-        boolean permission = user.getUserId().equals(post.getUserId());
+        List<PostImage> tempList = postImageRepository.findByIdPostId(postId);
 
-        Counts counts = new Counts(post.getLikes(), post.getComments(), post.getViews());
-        if(!userService.existUser(post.getUserId())){
+        String userNickname = post.getUser().getNickname();
+        boolean permission = post.getUser().getId().equals(userId);
+
+        long likeCount = likeRepository.countByIdPostId(postId);
+        long commentCount = commentRepository.countByPostId(postId);
+
+        Counts counts = new Counts(likeCount, commentCount, post.getViews());
+        if(!userService.existsUser(post.getUser().getId())){
             userNickname = "알 수 없음";
         }
 
+        List<Long> imageList = tempList.stream()
+                .map(postImage -> postImage.getId().getFileId())
+                .toList();
+
+        Long thumbnailId = post.getUser().getProfileFile() != null
+                ? post.getUser().getProfileFile().getId()
+                : null;
+
         PostResponse postResponse = new PostResponse(
-                post.getPostId(),
+                post.getId(),
                 post.getTitle(),
                 post.getBody(),
-                post.getThumbnailId(),
+                thumbnailId,
                 userNickname,
-                post.getUserId(),
+                post.getUser().getId(),
                 counts,
-                post.getFileIds(),
+                imageList,
                 post.isEdited(),
                 permission
         );
 
 
-        increasePostViews(post);
+        increasePostViews(post, userId);
         postRepository.save(post);
         return postResponse;
     }
 
-    public void increasePostViews(Post post){
-        post.setViews(post.getViews() + 1);
+    public void increasePostViews(Post post, Long userId){
+        Optional<View> checkView = viewRepository.findById(new PostViewId(userId, post.getId()));
+
+        if(checkView.isEmpty()){
+            viewRepository.save(new View(userId, post.getId()));
+            post.setViews(post.getViews() + 1);
+        } else {
+            View view = checkView.get();
+            boolean isExpired = view.getViewTime().getTime() < System.currentTimeMillis() - (24 * 60 * 60 * 1000L);
+            if(isExpired){
+                view.updateTime();
+                viewRepository.save(view);
+                post.setViews(post.getViews() + 1);
+            }
+        }
     }
 
-    public Post savePost(String postId, PostRequest postRequest, MultipartFile[] images) {
+    public Post savePost(Long postId, PostRequest postRequest, MultipartFile[] images) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-            List<String> tempList = new ArrayList<>();
+            if(postRequest.getTitle() == null || postRequest.getTitle().isBlank()
+                    || postRequest.getBody() == null || postRequest.getBody().isBlank()){
+                throw new CustomException(ApiResponseErrorMessage.MISSING_REQUIRED_PARAMETER);
+            }
+
             if(images != null){
                 for(MultipartFile file : images){
-                    tempList.add(fileService.upload(file));
-                }
-            }
-            if(postRequest.getImages() != null){
-                for(String image : postRequest.getImages()){
-                    tempList.add(image);
+                    UploadFile uploadfile = fileService.upload(file);
+                    postImageRepository.save(new PostImage(uploadfile.getId(), postId));
                 }
             }
 
             post.setTitle(postRequest.getTitle());
             post.setBody(postRequest.getBody());
-            post.setFileIds(tempList);
             post.setTemp(false);
             post.setPostTime(new Date());
 
             return postRepository.save(post);
     }
 
-    public PostListResponse getPosts(int size, String lastPostId) {
-        List<Post> posts = postRepository.findAllOrderByPostTime(size, lastPostId)
-                .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
+    @Transactional(readOnly = true)
+    public PostListResponse getPosts(int size, Long lastPostId) {
+        Pageable pageable = PageRequest.of(0, size);
 
-        List<PostResponse> tempList = new ArrayList<>();
+        List<Post> posts = (lastPostId == null)
+                ? postRepository.findPosts(pageable)
+                : postRepository.findPosts(lastPostId, pageable);
+
         PostListResponse postListResponse = new PostListResponse();
+        List<PostResponse> tempList = new ArrayList<>();
 
         for(Post post : posts){
-            String userNickname = post.getNickname();
+            String userNickname = (post.getUser().isDeleted()) ? "알 수 없음" : post.getUser().getNickname();
 
-            Counts counts = new Counts(post.getLikes(), post.getComments(), post.getViews());
+            long likeCount = likeRepository.countByIdPostId(post.getId());
+            long commentCount = commentRepository.countByPostId(post.getId());
+            Long thumbnailId = post.getUser().getProfileFile() != null
+                    ? post.getUser().getProfileFile().getId()
+                    : null;
+
+            Counts counts = new Counts(likeCount, commentCount, post.getViews());
 
             SimpleDateFormat sd = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
-            if(!userService.existUser(post.getUserId())){
-                userNickname = "알 수 없음";
-            }
-
             PostResponse postResponse =  new PostResponse(
-                    post.getPostId(),
+                    post.getId(),
                     post.getTitle(),
                     post.getBody(),
-                    post.getThumbnailId(),
+                    thumbnailId,
                     userNickname,
-                    post.getUserId(),
+                    post.getUser().getId(),
                     counts,
                     sd.format(post.getPostTime()),
                     post.isDeleted(),
@@ -171,44 +225,36 @@ public class PostService {
     }
 
 
-    public void addLike(String postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
-
-        post.setLikes(post.getLikes() + 1);
-
-        postRepository.save(post);
+    public void addLike(Long postId, Long userId) {
+        Optional<Like> checkLike = likeRepository.findById(new PostLikeId(userId, postId));
+        if(checkLike.isEmpty()) {
+            likeRepository.save(new Like(userId, postId));
+        }
     }
 
-    public void deleteLike(String postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
-
-        post.setLikes(post.getLikes() - 1);
-
-        postRepository.save(post);
+    public void deleteLike(Long postId, Long userId) {
+        Optional<Like> checkLike = likeRepository.findById(new PostLikeId(userId, postId));
+        if(checkLike.isPresent()) {
+            likeRepository.delete(new Like(userId, postId));
+        }
     }
 
-    public Post editPost(String postId, PostTempRequest request, MultipartFile[] images, String userId) {
-        List<String> tempList = new ArrayList<>();
-
+    public Post editPost(Long postId, PostTempRequest request, MultipartFile[] images, Long userId) {
         if(images != null){
             for(MultipartFile file : images){
-                tempList.add(fileService.upload(file));
+                UploadFile uploadFile = fileService.upload(file);
+                postImageRepository.save(new PostImage(uploadFile.getId(), postId));
             }
         }
         Post post = postRepository.findById(postId).
                 orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-        if(!post.getUserId().equals(userId)){
+        if(!post.getUser().getId().equals(userId)){
             throw new CustomException(ApiResponseErrorMessage.FORBIDDEN);
         }
 
-        post.setFileIds(tempList);
         post.setEdited(true);
-
         if(request.getTitle() != null && !request.getTitle().isBlank()) post.setTitle(request.getTitle());
-
         if(request.getBody() != null && !request.getBody().isBlank()) post.setBody(request.getBody());
 
         postRepository.save(post);
@@ -216,18 +262,29 @@ public class PostService {
         return post;
     }
 
-    public void addReports(String postId) {
+    public void addReports(Long postId, Long userId) {
+        Optional<Report> checkReport =  postReportRepository.findById(new PostReportId(userId, postId));
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-        post.setReports(post.getReports() + 1);
-        postRepository.save(post);
+        if(checkReport.isEmpty()){
+            postReportRepository.save(new Report(userId, postId));
+            post.setReports(post.getReports() + 1);
+            postRepository.save(post);
+        }
     }
 
-    public PostTempResponse getTempPost(String postId) {
+    @Transactional(readOnly = true)
+    public PostTempResponse getTempPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-        return new PostTempResponse(postId, post.getTitle(), post.getBody(), post.getFileIds());
+        List<PostImage> tempList = postImageRepository.findByIdPostId(postId);
+
+        List<Long> imageList = tempList.stream()
+                .map(postImage -> postImage.getId().getFileId())
+                .toList();
+
+        return new PostTempResponse(postId, post.getTitle(), post.getBody(), imageList);
     }
 }
