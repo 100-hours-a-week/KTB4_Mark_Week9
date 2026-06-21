@@ -1,38 +1,50 @@
 package com.mark.community.entity;
 
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+
+@Entity
+@Getter
+@NoArgsConstructor
+@Table(name = "users")
 public class User {
-    private String userId;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String email;
     private String password;
     private String nickname;
-    private String profileImage;
     private boolean deleted;
 
-    public User(String email, String password, String nickname){
+    @OneToOne
+    @JoinColumn(name = "file_id", unique = true)
+    private UploadFile profileFile;
+
+    public User(String email, String password, String nickname) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
     }
 
-    public User(String email, String password, String nickname, String profileImage){
+    public User(String email, String password, String nickname, UploadFile file) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.profileImage = profileImage;
+        this.profileFile = file;
     }
 
-
-    public User(){
-
-    }
-
-    public void setUserId(String userId){
-        this.userId = userId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setNickname(String nickname){
         this.nickname = nickname;
+    }
+
+    public void setFile(UploadFile file) {
+        this.profileFile = file;
     }
 
     public void setPassword(String password){
@@ -41,38 +53,6 @@ public class User {
 
     public void setDeleted(boolean deleted){
         this.deleted = deleted;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setProfileImage(String profileImage) {
-        this.profileImage = profileImage;
-    }
-
-    public String getEmail(){
-        return email;
-    }
-
-    public String getPassword(){
-        return password;
-    }
-
-    public String getNickname(){
-        return nickname;
-    }
-
-    public String getUserId(){
-        return userId;
-    }
-
-    public String getProfileImage(){
-        return profileImage;
-    }
-
-    public boolean isDeleted(){
-        return deleted;
     }
 
 }
