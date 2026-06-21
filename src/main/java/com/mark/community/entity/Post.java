@@ -1,22 +1,22 @@
 package com.mark.community.entity;
 
-import java.util.Date;
-import java.util.List;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
+@Entity
+@Getter
+@NoArgsConstructor
 public class Post {
-    private String postId;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String title;
     private String body;
-    private String thumbnailId;
-    private String nickname;
-    private String userId;
     private Date postTime;
 
-    private List<String> fileIds;
-
-    private int likes;
-    private int comments;
-    private int views;
+    private long views;
     private int reports;
 
     private boolean deleted;
@@ -24,24 +24,19 @@ public class Post {
     private boolean edited;
     private boolean temp = true;
 
-    public Post(String title, String body, String thumbnailId, String nickname, String userId) {
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    public Post(String title, String body) {
         this.title = title;
         this.body = body;
-        this.thumbnailId = thumbnailId;
-        this.nickname = nickname;
-        this.userId = userId;
     }
 
-    public Post(){
-
-    }
-
-    public void setFileIds(List<String> fileIds) {
-        this.fileIds = fileIds;
-    }
-
-    public List<String> getFileIds() {
-        return fileIds;
+    public Post(String title, String body, User user) {
+        this.title = title;
+        this.body = body;
+        this.user = user;
     }
 
     public void setTitle(String title) {
@@ -52,28 +47,12 @@ public class Post {
         this.body = body;
     }
 
-    public void setThumbnailId(String thumbnailId) {
-        this.thumbnailId = thumbnailId;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public void setPostTime(Date postTime) {
         this.postTime = postTime;
     }
 
     public void setTemp(boolean temp) {
         this.temp = temp;
-    }
-
-    public void setPostId(String postId) {
-        this.postId = postId;
     }
 
     public void setDeleted(boolean deleted) {
@@ -88,15 +67,7 @@ public class Post {
         return blind;
     }
 
-    public void setLikes(int likes) {
-        this.likes = likes;
-    }
-
-    public void setComments(int comments) {
-        this.comments = comments;
-    }
-
-    public void setViews(int views) {
+    public void setViews(long views) {
         this.views = views;
     }
 
@@ -111,63 +82,6 @@ public class Post {
     public void setReports(int reports) {
         this.reports = reports;
     }
-
-
-
-    public boolean isEdited() {
-        return edited;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public String getThumbnailId() {
-        return thumbnailId;
-    }
-
-    public int getLikes() {
-        return likes;
-    }
-
-    public int getComments() {
-        return comments;
-    }
-
-    public int getViews() {
-        return views;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getPostId() {
-        return postId;
-    }
-
-    public Date getPostTime() {
-        return postTime;
-    }
-
-
-
-    public int getReports() {
-        return reports;
-    }
-
 
 
 
