@@ -2,26 +2,28 @@ package com.mark.community.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostTempResponse {
-    private String postId;
-    private List<String> images;
+    private Long postId;
+    private List<Long> images;
     private String title;
     private String body;
 
-    public PostTempResponse(String postId){
+    public PostTempResponse(Long postId){
         this.postId = postId;
     }
 
-    public PostTempResponse(String postId, List<String> images){
+    public PostTempResponse(Long postId, List<Long> images){
         this.postId = postId;
         this.images = images;
     }
 
-    public PostTempResponse(String postId, String title, String body, List<String> images){
+    public PostTempResponse(Long postId, String title, String body, List<Long> images){
         this.postId = postId;
         this.title = title;
         this.body = body;
@@ -36,11 +38,7 @@ public class PostTempResponse {
         return body;
     }
 
-    public List<String> getImages() {
+    public List<Long> getImages() {
         return images;
-    }
-
-    public String getPostId() {
-        return postId;
     }
 }
