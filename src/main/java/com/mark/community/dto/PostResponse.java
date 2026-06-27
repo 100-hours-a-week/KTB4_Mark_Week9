@@ -38,7 +38,9 @@ public class PostResponse {
                         Counts counts,
                         List<Long> fileIds,
                         boolean edited,
-                        boolean permission){
+                        boolean permission,
+                        String postTime
+    ){
         this.postId = postId;
         this.title = title;
         this.body = body;
@@ -49,6 +51,7 @@ public class PostResponse {
         this.fileIds = fileIds;
         this.edited = edited;
         this.permission = permission;
+        this.postTime = postTime;
     }
 
     public PostResponse(Long postId,

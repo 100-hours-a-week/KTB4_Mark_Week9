@@ -119,6 +119,8 @@ public class PostService {
                 ? post.getUser().getProfileFile().getId()
                 : null;
 
+        SimpleDateFormat sd = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
         PostResponse postResponse = new PostResponse(
                 post.getId(),
                 post.getTitle(),
@@ -129,7 +131,8 @@ public class PostService {
                 counts,
                 imageList,
                 post.isEdited(),
-                permission
+                permission,
+                sd.format(post.getPostTime())
         );
 
 
