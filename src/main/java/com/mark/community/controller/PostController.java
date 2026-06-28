@@ -57,7 +57,7 @@ public class PostController {
     @PatchMapping("/{postId}/temp")
     public ResponseEntity<?> postAutoTemp(@PathVariable("postId") Long postId,
                                           @RequestPart("request") PostTempRequest request,
-                                          @RequestPart("images") MultipartFile[] images,
+                                          @RequestPart(value = "images", required = false) MultipartFile[] images,
                                           HttpServletRequest httpRequest
     ){
         HttpSession session = httpRequest.getSession(false);
@@ -126,7 +126,7 @@ public class PostController {
     @PutMapping("/{postId}")
     public ResponseEntity<?> savePost(@PathVariable("postId") Long postId,
                                       @RequestPart("request") PostRequest request,
-                                      @RequestPart("images") MultipartFile[] images,
+                                      @RequestPart(value = "images", required = false) MultipartFile[] images,
                                       HttpServletRequest httpRequest){
         HttpSession session = httpRequest.getSession(false);
 

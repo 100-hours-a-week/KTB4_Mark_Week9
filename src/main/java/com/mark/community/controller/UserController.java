@@ -4,6 +4,7 @@ package com.mark.community.controller;
 import com.mark.community.dto.EditUserRequest;
 import com.mark.community.dto.RegisterRequest;
 import com.mark.community.dto.RegisterResponse;
+import com.mark.community.dto.UserResponse;
 import com.mark.community.exception.CustomException;
 import com.mark.community.messages.ApiResponseErrorMessage;
 import com.mark.community.messages.ApiResponseMessage;
@@ -38,7 +39,7 @@ public class UserController {
         @PatchMapping
         public ResponseEntity<?> editUser(
                 @RequestPart("request") EditUserRequest request,
-                @RequestPart("image") MultipartFile image,
+                @RequestPart(value = "image", required = false) MultipartFile image,
                 HttpServletRequest httpRequest){
             HttpSession session = httpRequest.getSession(false);
             if(session == null){
@@ -66,4 +67,18 @@ public class UserController {
                     .status(ApiResponseMessage.SUCCESS_DELETE_USER.getStatusCode())
                     .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_DELETE_USER));
         }
+
+    @GetMapping
+    public ResponseEntity<?> getUser(HttpServletRequest httpRequest){
+        HttpSession session = httpRequest.getSession(false);
+        if(session == null){
+            throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
+        }
+        Long userId = (Long) session.getAttribute("userId");
+        UserResponse userResponse = userService.getUser(userId);
+        return ResponseEntity
+                .status(ApiResponseMessage.SUCCESS_GET_USER.getStatusCode())
+                .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_GET_USER, userResponse));
+    }
+
     }
