@@ -21,7 +21,8 @@ public enum ApiResponseMessage {
     SUCCESS_ADD_LIKE("좋아요에 성공했습니다.", HttpStatus.OK),
     SUCCESS_DELETE_LIKE("좋아요 삭제에 성공했습니다.", HttpStatus.OK),
     SUCCESS_GET_FILE("파일 조회에 성공했습니다.", HttpStatus.OK),
-    SUCCESS_ADD_REPORT("신고에 성공했습니다.", HttpStatus.OK);
+    SUCCESS_ADD_REPORT("신고에 성공했습니다.", HttpStatus.OK),
+    SUCCESS_GET_USER("유저 정보를 불러왔습니다.", HttpStatus.OK);
 
     private final String message;
     private final HttpStatus status;
