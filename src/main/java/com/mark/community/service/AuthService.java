@@ -16,7 +16,7 @@ public class AuthService {
     }
 
     public User loginUser(LoginRequest request) {
-        return userRepository.findByEmailAndPassword(request.getEmail(), request.getPassword()).orElseThrow(
+        return userRepository.findByEmailAndPasswordAndDeletedFalse(request.getEmail(), request.getPassword()).orElseThrow(
                 () -> new CustomException(ApiResponseErrorMessage.FAIL_LOGIN));
     }
 }
