@@ -88,6 +88,7 @@ public class CommentService {
 
         return comments.stream()
                 .map(comment -> new CommentResponse(
+                        comment.getId(),
                         comment.getUser().getNickname(),
                         comment.isDeleted() ? "삭제된 댓글입니다" : comment.getComment(),
                         comment.getUser().getId(),
