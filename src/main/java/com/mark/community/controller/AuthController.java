@@ -28,7 +28,7 @@ public class AuthController {
         Long fileId = user.getProfileFile() != null ? user.getProfileFile().getId() : null;
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_LOGIN.getStatusCode())
-                .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_LOGIN, new LoginResponse(fileId)));
+                .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_LOGIN, new LoginResponse(fileId, user.getId())));
     }
 
 }
