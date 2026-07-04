@@ -4,7 +4,6 @@ import com.mark.community.dto.FileResponse;
 import com.mark.community.messages.ApiResponseMessage;
 import com.mark.community.response.ApiResponse;
 import com.mark.community.service.FileService;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

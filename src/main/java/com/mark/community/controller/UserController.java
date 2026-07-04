@@ -1,18 +1,12 @@
 package com.mark.community.controller;
 
 
-import com.mark.community.dto.EditUserRequest;
-import com.mark.community.dto.RegisterRequest;
-import com.mark.community.dto.RegisterResponse;
-import com.mark.community.dto.UserResponse;
-import com.mark.community.exception.CustomException;
-import com.mark.community.messages.ApiResponseErrorMessage;
+import com.mark.community.dto.*;
 import com.mark.community.messages.ApiResponseMessage;
 import com.mark.community.response.ApiResponse;
 import com.mark.community.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,14 +34,9 @@ public class UserController {
         public ResponseEntity<?> editUser(
                 @RequestPart("request") EditUserRequest request,
                 @RequestPart(value = "image", required = false) MultipartFile image,
-                HttpServletRequest httpRequest){
-            HttpSession session = httpRequest.getSession(false);
-            if(session == null){
-                throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
-            }
-            Long userId = (Long) session.getAttribute("userId");
+                @AuthenticationPrincipal CustomUserDetails userDetails){
 
-            userService.editUser(request, image, userId);
+            userService.editUser(request, image, userDetails.getId());
 
             return ResponseEntity
                     .status(ApiResponseMessage.SUCCESS_UPDATE_USER.getStatusCode())
@@ -55,13 +44,8 @@ public class UserController {
         }
 
         @DeleteMapping
-        public ResponseEntity<?> deleteUser(HttpServletRequest httpRequest){
-            HttpSession session = httpRequest.getSession(false);
-            if(session == null){
-                throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
-            }
-            Long userId = (Long) session.getAttribute("userId");
-            userService.deleteUser(userId);
+        public ResponseEntity<?> deleteUser(@AuthenticationPrincipal CustomUserDetails userDetails){
+            userService.deleteUser(userDetails.getId());
 
             return ResponseEntity
                     .status(ApiResponseMessage.SUCCESS_DELETE_USER.getStatusCode())
@@ -69,13 +53,8 @@ public class UserController {
         }
 
     @GetMapping
-    public ResponseEntity<?> getUser(HttpServletRequest httpRequest){
-        HttpSession session = httpRequest.getSession(false);
-        if(session == null){
-            throw new CustomException(ApiResponseErrorMessage.EXPIRED_SESSION);
-        }
-        Long userId = (Long) session.getAttribute("userId");
-        UserResponse userResponse = userService.getUser(userId);
+    public ResponseEntity<?> getUser(@AuthenticationPrincipal CustomUserDetails userDetails){
+        UserResponse userResponse = userService.getUser(userDetails.getId());
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_GET_USER.getStatusCode())
                 .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_GET_USER, userResponse));
