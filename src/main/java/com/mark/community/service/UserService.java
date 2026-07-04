@@ -9,6 +9,7 @@ import com.mark.community.entity.User;
 import com.mark.community.exception.CustomException;
 import com.mark.community.messages.ApiResponseErrorMessage;
 import com.mark.community.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -19,11 +20,14 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserService {
     private final UserRepository userRepository;
     private final FileService fileService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public UserService(UserRepository userRepository,
-                       FileService fileService) {
+                       FileService fileService,
+                       BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
         this.fileService = fileService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     public RegisterResponse registerUser(RegisterRequest request, MultipartFile profileImage) {
@@ -49,10 +53,13 @@ public class UserService {
         }
 
         User user;
+
+        String password = passwordEncode(request.getPassword());
+
         if(uploadFile != null){
-            user = new User(request.getEmail(), request.getPassword(), request.getNickname(), uploadFile);
+            user = new User(request.getEmail(), password, request.getNickname(), uploadFile);
         } else {
-            user = new User(request.getEmail(), request.getPassword(), request.getNickname());
+            user = new User(request.getEmail(), password, request.getNickname());
         }
 
         User registerUser = userRepository.save(user);
@@ -81,10 +88,8 @@ public class UserService {
                 user.setFile(uploadFile);
             }
             user.setNickname(request.getNickname());
-            userRepository.save(user);
         } else if(request.getNickname() == null && !request.getPassword().isBlank()) {
             user.setPassword(request.getPassword());
-            userRepository.save(user);
         } else {
             throw new CustomException(ApiResponseErrorMessage.INVALID_REQUEST);
         }
@@ -94,7 +99,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.USER_NOT_FOUND));
         user.setDeleted(true);
-        userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
@@ -109,5 +113,9 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.USER_NOT_FOUND));
         Long profileFileId = user.getProfileFile() != null ? user.getProfileFile().getId() : null;
         return new UserResponse(user.getEmail(), user.getNickname(), profileFileId);
+    }
+
+    public String passwordEncode(String password){
+        return bCryptPasswordEncoder.encode(password);
     }
 }

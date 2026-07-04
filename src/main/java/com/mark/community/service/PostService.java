@@ -76,7 +76,6 @@ public class PostService {
                 orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
         post.setTitle(request.getTitle());
         post.setBody(request.getBody());
-        postRepository.save(post);
 
 
         return new PostTempResponse(post.getId(), imageList);
@@ -91,7 +90,6 @@ public class PostService {
         }
 
         post.setDeleted(true);
-        postRepository.save(post);
     }
 
     public PostResponse getPost(Long postId, Long userId) {
@@ -137,7 +135,6 @@ public class PostService {
 
 
         increasePostViews(post, userId);
-        postRepository.save(post);
         return postResponse;
     }
 
@@ -152,7 +149,6 @@ public class PostService {
             boolean isExpired = view.getViewTime().getTime() < System.currentTimeMillis() - (24 * 60 * 60 * 1000L);
             if(isExpired){
                 view.updateTime();
-                viewRepository.save(view);
                 post.setViews(post.getViews() + 1);
             }
         }
@@ -179,7 +175,7 @@ public class PostService {
             post.setTemp(false);
             post.setPostTime(new Date());
 
-            return postRepository.save(post);
+            return post;
     }
 
     @Transactional(readOnly = true)
@@ -260,7 +256,6 @@ public class PostService {
         if(request.getTitle() != null && !request.getTitle().isBlank()) post.setTitle(request.getTitle());
         if(request.getBody() != null && !request.getBody().isBlank()) post.setBody(request.getBody());
 
-        postRepository.save(post);
 
         return post;
     }
@@ -273,7 +268,6 @@ public class PostService {
         if(checkReport.isEmpty()){
             postReportRepository.save(new Report(userId, postId));
             post.setReports(post.getReports() + 1);
-            postRepository.save(post);
         }
     }
 

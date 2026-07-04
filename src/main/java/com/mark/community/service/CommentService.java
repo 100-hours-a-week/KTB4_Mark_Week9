@@ -62,8 +62,6 @@ public class CommentService {
         comment.setComment(commentRequest.getComment());
         comment.setCommentTime(new Date());
 
-        commentRepository.save(comment);
-
         return comment;
     }
 
@@ -76,8 +74,6 @@ public class CommentService {
         }
 
         comment.setDeleted(true);
-
-        commentRepository.save(comment);
 
         return comment;
     }
