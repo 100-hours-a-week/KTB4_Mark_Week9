@@ -14,7 +14,7 @@ public enum ApiResponseErrorMessage {
     POST_NOT_FOUND("게시글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     COMMENT_NOT_FOUND("댓글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     FILE_NOT_FOUND("파일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-
+    UNAUTHORIZED("인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
     FORBIDDEN("권한이 없습니다.", HttpStatus.FORBIDDEN);
 
     private final String message;
