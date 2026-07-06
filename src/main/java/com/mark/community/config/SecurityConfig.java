@@ -1,5 +1,6 @@
 package com.mark.community.config;
 
+import com.mark.community.enums.UserRole;
 import com.mark.community.exception.CustomException;
 import com.mark.community.filter.LoginAuthenticationFilter;
 import com.mark.community.messages.ApiResponseErrorMessage;
@@ -63,6 +64,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/users").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/csrf").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/posts/temp").hasAuthority(UserRole.ROLE_AUTH_USER.getValue())
+                        .requestMatchers(HttpMethod.PATCH, "/posts/*/temp").hasAuthority(UserRole.ROLE_AUTH_USER.getValue())
+                        .requestMatchers(HttpMethod.PUT, "/posts/*").hasAuthority(UserRole.ROLE_AUTH_USER.getValue())
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
