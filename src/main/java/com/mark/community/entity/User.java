@@ -1,6 +1,7 @@
 package com.mark.community.entity;
 
 
+import com.mark.community.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,9 @@ public class User {
     private String password;
     private String nickname;
     private boolean deleted;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @OneToOne
     @JoinColumn(name = "file_id", unique = true)
@@ -55,4 +59,7 @@ public class User {
         this.deleted = deleted;
     }
 
+    public void setRole(UserRole userRole){
+        this.role = userRole;
+    }
 }

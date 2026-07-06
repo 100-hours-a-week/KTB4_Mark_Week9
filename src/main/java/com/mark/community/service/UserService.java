@@ -6,9 +6,11 @@ import com.mark.community.dto.RegisterResponse;
 import com.mark.community.dto.UserResponse;
 import com.mark.community.entity.UploadFile;
 import com.mark.community.entity.User;
+import com.mark.community.enums.UserRole;
 import com.mark.community.exception.CustomException;
 import com.mark.community.messages.ApiResponseErrorMessage;
 import com.mark.community.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,18 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
+@AllArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final FileService fileService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    public UserService(UserRepository userRepository,
-                       FileService fileService,
-                       BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.userRepository = userRepository;
-        this.fileService = fileService;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
 
     public RegisterResponse registerUser(RegisterRequest request, MultipartFile profileImage) {
 
@@ -82,7 +77,6 @@ public class UserService {
             throw new CustomException(ApiResponseErrorMessage.INVALID_REQUEST);
         }
 
-
         if(request.getPassword() == null && !request.getNickname().isBlank()){
             if(uploadFile != null){
                 user.setFile(uploadFile);
@@ -117,5 +111,11 @@ public class UserService {
 
     public String passwordEncode(String password){
         return bCryptPasswordEncoder.encode(password);
+    }
+
+    public void changeAuthorization(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.USER_NOT_FOUND));
+        user.setRole(UserRole.ROLE_AUTH_USER);
     }
 }

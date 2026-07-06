@@ -35,13 +35,12 @@ public class CommentController {
 
         if(idemResponseEntity != null) return idemResponseEntity;
 
-        Comment comment = commentService.commentSave(postId, request, userDetails.getId());
+        CommentResponse commentResponse = commentService.commentSave(postId, request, userDetails);
 
-        CommentResponse commentResponse = new CommentResponse(comment.getId());
 
         ResponseEntity<?> responseEntity = ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_COMMENT_SAVE.getStatusCode())
-                .header("LOCATION", "/comment/" + comment.getId())
+                .header("LOCATION", "/comment/" + commentResponse.getCommentId())
                 .body(new ApiResponse<>(ApiResponseMessage.SUCCESS_COMMENT_SAVE, commentResponse));
 
         IdempotencyUtil.setResponse(idempotencyKey, responseEntity);

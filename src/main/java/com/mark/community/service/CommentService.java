@@ -2,14 +2,17 @@ package com.mark.community.service;
 
 import com.mark.community.dto.CommentRequest;
 import com.mark.community.dto.CommentResponse;
+import com.mark.community.dto.CustomUserDetails;
 import com.mark.community.entity.Comment;
 import com.mark.community.entity.Post;
 import com.mark.community.entity.User;
+import com.mark.community.enums.UserRole;
 import com.mark.community.exception.CustomException;
 import com.mark.community.messages.ApiResponseErrorMessage;
 import com.mark.community.repository.CommentRepository;
 import com.mark.community.repository.PostRepository;
 import com.mark.community.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,37 +21,40 @@ import java.util.List;
 
 @Service
 @Transactional
+@AllArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final AuthService authService;
+    private final UserService userService;
 
-    public CommentService(
-            CommentRepository commentRepository,
-            UserRepository userRepository,
-            PostRepository postRepository) {
-        this.commentRepository = commentRepository;
-        this.userRepository = userRepository;
-        this.postRepository = postRepository;
-    }
-
-
-    public Comment commentSave(Long postId, CommentRequest request, Long userId) {
-        User user = userRepository.findById(userId)
+    public CommentResponse commentSave(Long postId, CommentRequest request, CustomUserDetails userDetails) {
+        User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.USER_NOT_FOUND));
 
         Post post = postRepository.getReferenceById(postId);
 
 
-        Comment comment = new Comment(
+        Comment commentData = new Comment(
                 post,
                 user,
                 request.getComment(),
                 new Date(),
                 request.getParentCommentId()
         );
+        Comment comment = commentRepository.save(commentData);
 
-        return commentRepository.save(comment);
+        if (user.getRole() != UserRole.ROLE_AUTH_USER) {
+            long commentCount = commentRepository.countByUserId(userDetails.getId());
+            if (commentCount >= 3) {
+                userService.changeAuthorization(userDetails.getId());
+                authService.changeSessionAuthorization(UserRole.ROLE_AUTH_USER);
+            }
+        }
+        CommentResponse commentResponse = new CommentResponse(comment.getId(), user.getRole().getValue());
+
+        return commentResponse;
     }
 
     public Comment editComment(Long commentId, CommentRequest commentRequest, Long userId) {
