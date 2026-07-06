@@ -1,20 +1,21 @@
 package com.mark.community.dto;
 
+import lombok.Getter;
+
+@Getter
 public class RegisterRequest {
 
     private String email;
     private String password;
     private String nickname;
 
-    public String getEmail(){
-        return email;
+    public RegisterRequest(){
+
     }
 
-    public String getPassword(){
-        return password;
-    }
-
-    public String getNickname(){
-        return nickname;
+    public RegisterRequest(String email, String password, String nickname){
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
     }
 }

@@ -25,4 +25,8 @@ public class UploadFile {
         this.fileType = fileType;
         this.fileSize = fileSize;
     }
+
+    public void setId(Long id){
+        this.id = id;
+    }
 }

@@ -11,4 +11,9 @@ public class EditUserRequest {
     public String getPassword() {
         return password;
     }
+
+    public EditUserRequest(String nickname, String password) {
+        this.nickname = nickname;
+        this.password = password;
+    }
 }
