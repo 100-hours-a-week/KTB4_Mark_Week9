@@ -58,7 +58,10 @@ public class LoginAuthenticationFilter extends UsernamePasswordAuthenticationFil
         super.successfulAuthentication(request, response, chain, authResult);
 
         CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
-        LoginResponse loginResponse = new LoginResponse(userDetails.getId(), userDetails.getFileId());
+        LoginResponse loginResponse =
+                new LoginResponse(userDetails.getId(),
+                        userDetails.getFileId(),
+                        userDetails.getAuthorities().stream().findFirst().get().getAuthority());
 
         response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

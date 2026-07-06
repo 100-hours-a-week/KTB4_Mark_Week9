@@ -14,17 +14,19 @@ public class CustomUserDetails implements UserDetails {
     private String email;
     private String password;
     private Long fileId;
+    private Collection<GrantedAuthority> authorities;
 
-    public CustomUserDetails(Long id, String email, String password, Long fileId) {
+    public CustomUserDetails(Long id, String email, String password, Long fileId, Collection<GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.fileId = fileId;
+        this.authorities = authorities;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return authorities;
     }
 
     @Override
