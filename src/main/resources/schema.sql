@@ -5,7 +5,8 @@ CREATE TABLE users
     password varchar(100) NOT NULL,
     nickname varchar(10)  NOT NULL,
     deleted  boolean      NOT NULL DEFAULT false,
-    file_id  BIGINT NULL
+    file_id  BIGINT NULL,
+    role     varchar(20) NOT NULL DEFAULT 'ROLE_USER'
 );
 
 CREATE TABLE comments
