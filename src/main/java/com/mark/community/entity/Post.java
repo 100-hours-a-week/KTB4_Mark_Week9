@@ -83,6 +83,10 @@ public class Post {
         this.reports = reports;
     }
 
+    public void setId(Long id){
+        this.id = id;
+    }
+
 
 
 }

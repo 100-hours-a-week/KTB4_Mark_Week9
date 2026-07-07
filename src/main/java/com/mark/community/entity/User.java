@@ -32,11 +32,28 @@ public class User {
         this.nickname = nickname;
     }
 
+    public User(String email, String password, String nickname, UserRole role) {
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.role = role;
+    }
+
+
+
     public User(String email, String password, String nickname, UploadFile file) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.profileFile = file;
+    }
+
+    public User(String email, String password, String nickname, UploadFile file, UserRole role) {
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.profileFile = file;
+        this.role = role;
     }
 
     public void setId(Long id) {
