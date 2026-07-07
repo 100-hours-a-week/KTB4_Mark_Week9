@@ -52,7 +52,7 @@ public class CommentService {
                 authService.changeSessionAuthorization(UserRole.ROLE_AUTH_USER);
             }
         }
-        CommentResponse commentResponse = new CommentResponse(comment.getId(), user.getRole().getValue());
+        CommentResponse commentResponse = new CommentResponse(comment.getId(), comment.getComment() ,user.getRole().getValue());
 
         return commentResponse;
     }
