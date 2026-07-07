@@ -163,7 +163,7 @@ public class CommentServiceTest {
         when(commentRepository.save(any(Comment.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(postRepository.getReferenceById(anyLong())).thenReturn(post);
         when(commentRepository.countByUserId(1L)).thenReturn(3L);
-        CommentResponse commentResponse = commentService.commentSave(anyLong(), request, userDetails);
+        commentService.commentSave(anyLong(), request, userDetails);
         verify(userService, times(1)).changeAuthorization(1L);
         verify(authService, times(1)).changeSessionAuthorization(UserRole.ROLE_AUTH_USER);
     }

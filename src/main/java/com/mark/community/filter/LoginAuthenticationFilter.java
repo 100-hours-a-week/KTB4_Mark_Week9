@@ -4,8 +4,6 @@ package com.mark.community.filter;
 import com.mark.community.dto.CustomUserDetails;
 import com.mark.community.dto.LoginRequest;
 import com.mark.community.dto.LoginResponse;
-import com.mark.community.exception.CustomException;
-import com.mark.community.messages.ApiResponseErrorMessage;
 import com.mark.community.messages.ApiResponseMessage;
 import com.mark.community.response.ApiResponse;
 import jakarta.servlet.FilterChain;
