@@ -48,9 +48,10 @@ public class PostController {
     @PatchMapping("/{postId}/temp")
     public ResponseEntity<?> postAutoTemp(@PathVariable("postId") Long postId,
                                           @RequestPart("request") PostTempRequest request,
-                                          @RequestPart(value = "images", required = false) MultipartFile[] images
+                                          @RequestPart(value = "images", required = false) MultipartFile[] images,
+                                          @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        PostTempResponse postTempResponse = postService.postAutoTemp(postId, request, images);
+        PostTempResponse postTempResponse = postService.postAutoTemp(postId, request, images, userDetails);
 
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_POST_TEMP.getStatusCode())
@@ -93,9 +94,11 @@ public class PostController {
     @PutMapping("/{postId}")
     public ResponseEntity<?> savePost(@PathVariable("postId") Long postId,
                                       @RequestPart("request") PostRequest request,
-                                      @RequestPart(value = "images", required = false) MultipartFile[] images){
+                                      @RequestPart(value = "images", required = false) MultipartFile[] images,
+                                      @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
 
-        Post post = postService.savePost(postId, request, images);
+        Post post = postService.savePost(postId, request, images, userDetails);
 
         return ResponseEntity
                 .status(ApiResponseMessage.SUCCESS_POST_SAVE.getStatusCode())

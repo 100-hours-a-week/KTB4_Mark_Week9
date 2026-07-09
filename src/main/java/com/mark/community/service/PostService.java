@@ -61,7 +61,7 @@ public class PostService {
     }
 
 
-    public PostTempResponse postAutoTemp(Long postId, PostTempRequest request, MultipartFile[] images) {
+    public PostTempResponse postAutoTemp(Long postId, PostTempRequest request, MultipartFile[] images, CustomUserDetails userDetails) {
         List<Long> imageList = new ArrayList<>();
 
         if(images != null){
@@ -74,6 +74,11 @@ public class PostService {
 
         Post post = postRepository.findById(postId).
                 orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
+
+        if(!post.getUser().getId().equals(userDetails.getId())){
+            throw new CustomException(ApiResponseErrorMessage.FORBIDDEN);
+        }
+
         post.setTitle(request.getTitle());
         post.setBody(request.getBody());
 
@@ -154,28 +159,32 @@ public class PostService {
         }
     }
 
-    public Post savePost(Long postId, PostRequest postRequest, MultipartFile[] images) {
+    public Post savePost(Long postId, PostRequest postRequest, MultipartFile[] images, CustomUserDetails userDetails) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ApiResponseErrorMessage.POST_NOT_FOUND));
 
-            if(postRequest.getTitle() == null || postRequest.getTitle().isBlank()
-                    || postRequest.getBody() == null || postRequest.getBody().isBlank()){
-                throw new CustomException(ApiResponseErrorMessage.MISSING_REQUIRED_PARAMETER);
+        if(!post.getUser().getId().equals(userDetails.getId())){
+            throw new CustomException(ApiResponseErrorMessage.FORBIDDEN);
+        }
+
+        if(postRequest.getTitle() == null || postRequest.getTitle().isBlank()
+                || postRequest.getBody() == null || postRequest.getBody().isBlank()){
+            throw new CustomException(ApiResponseErrorMessage.MISSING_REQUIRED_PARAMETER);
+        }
+
+        if(images != null){
+            for(MultipartFile file : images){
+                UploadFile uploadfile = fileService.upload(file);
+                postImageRepository.save(new PostImage(uploadfile.getId(), postId));
             }
+        }
 
-            if(images != null){
-                for(MultipartFile file : images){
-                    UploadFile uploadfile = fileService.upload(file);
-                    postImageRepository.save(new PostImage(uploadfile.getId(), postId));
-                }
-            }
+        post.setTitle(postRequest.getTitle());
+        post.setBody(postRequest.getBody());
+        post.setTemp(false);
+        post.setPostTime(new Date());
 
-            post.setTitle(postRequest.getTitle());
-            post.setBody(postRequest.getBody());
-            post.setTemp(false);
-            post.setPostTime(new Date());
-
-            return post;
+        return post;
     }
 
     @Transactional(readOnly = true)
