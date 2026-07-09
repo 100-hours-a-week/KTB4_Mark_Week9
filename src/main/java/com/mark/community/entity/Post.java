@@ -87,6 +87,10 @@ public class Post {
         this.id = id;
     }
 
+    public void setUser(User user){
+        this.user = user;
+    }
+
 
 
 }

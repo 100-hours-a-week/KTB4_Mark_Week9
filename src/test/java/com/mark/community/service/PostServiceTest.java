@@ -6,6 +6,7 @@ import com.mark.community.entity.*;
 import com.mark.community.entity.key.PostLikeId;
 import com.mark.community.entity.key.PostReportId;
 import com.mark.community.enums.FileType;
+import com.mark.community.enums.UserRole;
 import com.mark.community.exception.CustomException;
 import com.mark.community.repository.*;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -72,18 +76,22 @@ public class PostServiceTest {
     @Test
     void 임시글자동저장시_게시글_조회에_실패하면_예외를_던진다(){
         PostTempRequest request = new PostTempRequest("제목", "내용");
+        CustomUserDetails userDetails = createUserDetails();
         when(postRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(CustomException.class, () -> postService.postAutoTemp(1L, request, null));
+        assertThrows(CustomException.class, () -> postService.postAutoTemp(1L, request, null, userDetails));
     }
 
     @Test
     void 임시글자동저장시_이미지가_없으면_업로드하지_않고_제목과_내용만_수정된다(){
         PostTempRequest request = new PostTempRequest("새제목", "새내용");
         Post post = new Post("기존제목", "기존내용");
+        User writer = createUser();
+        writer.setId(1L);
+        post.setUser(writer);
+        CustomUserDetails userDetails = createUserDetails();
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
 
-        PostTempResponse response = postService.postAutoTemp(1L, request, null);
+        PostTempResponse response = postService.postAutoTemp(1L, request, null, userDetails);
 
         assertEquals("새제목", post.getTitle());
         assertEquals("새내용", post.getBody());
@@ -95,6 +103,10 @@ public class PostServiceTest {
     void 임시글자동저장시_이미지가_있으면_각각_업로드되고_이미지목록이_반환된다(){
         PostTempRequest request = new PostTempRequest("새제목", "새내용");
         Post post = new Post("기존제목", "기존내용");
+        User writer = createUser();
+        writer.setId(1L);
+        post.setUser(writer);
+        CustomUserDetails userDetails = createUserDetails();
 
         MultipartFile[] images = new MultipartFile[]{
                 new MockMultipartFile("images", "photo1.png", "image/png", new byte[1]),
@@ -109,7 +121,7 @@ public class PostServiceTest {
         when(fileService.upload(any(MultipartFile.class))).thenReturn(uploadFile1, uploadFile2);
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
 
-        PostTempResponse response = postService.postAutoTemp(1L, request, images);
+        PostTempResponse response = postService.postAutoTemp(1L, request, images, userDetails);
 
         assertEquals(2, response.getImages().size());
         assertTrue(response.getImages().containsAll(List.of(1L, 2L)));
@@ -225,27 +237,36 @@ public class PostServiceTest {
     @Test
     void 게시글저장시_게시글_조회에_실패하면_예외를_던진다(){
         PostRequest request = new PostRequest("제목", "내용", null);
+        CustomUserDetails userDetails = createUserDetails();
         when(postRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(CustomException.class, () -> postService.savePost(1L, request, null));
+        assertThrows(CustomException.class, () -> postService.savePost(1L, request, null, userDetails));
     }
 
     @Test
     void 게시글저장시_제목이나_내용이_비어있으면_예외를_던진다(){
         Post post = new Post("기존제목", "기존내용");
+        User writer = createUser();
+        writer.setId(1L);
+        post.setUser(writer);
         PostRequest request = new PostRequest("", "내용", null);
+        CustomUserDetails userDetails = createUserDetails();
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
 
-        assertThrows(CustomException.class, () -> postService.savePost(1L, request, null));
+        assertThrows(CustomException.class, () -> postService.savePost(1L, request, null, userDetails));
     }
 
     @Test
     void 게시글저장시_정상적으로_저장되고_temp가_false로_변경된다(){
         Post post = new Post("기존제목", "기존내용");
+        User writer = createUser();
+        writer.setId(1L);
+        post.setUser(writer);
         PostRequest request = new PostRequest("새제목", "새내용", null);
+        CustomUserDetails userDetails = createUserDetails();
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
 
-        Post result = postService.savePost(1L, request, null);
+        Post result = postService.savePost(1L, request, null, userDetails);
 
         assertEquals("새제목", result.getTitle());
         assertEquals("새내용", result.getBody());
@@ -468,8 +489,43 @@ public class PostServiceTest {
         assertEquals("내용", response.getBody());
     }
 
+    @Test
+    void 게시글_저장시_작성자가_아니면_예외를_던진다(){
+        PostRequest request = new PostRequest("제목", "내용", List.of("F1"));
+        Post post = new Post("제목", "내용");
+        post.setId(1L);
+        User writer = createUser();
+        CustomUserDetails userDetails = createUserDetails();
+        writer.setId(2L);
+        post.setUser(writer);
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        assertThrows(CustomException.class,() -> postService.savePost(1L, request, null, userDetails));
+    }
+
+    @Test
+    void 게시글_자동임시저장시_작성자가_아니면_예외를_던진다(){
+        PostTempRequest request = new PostTempRequest("제목", "내용");
+        Post post = new Post("제목", "내용");
+        post.setId(1L);
+        User writer = createUser();
+        CustomUserDetails userDetails = createUserDetails();
+        writer.setId(2L);
+        post.setUser(writer);
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        assertThrows(CustomException.class,() -> postService.postAutoTemp(1L, request, null, userDetails));
+    }
+
     private User createUser(){
         return new User("test@gmail.com", "zkxpqn1", "test1");
     }
+
+    private CustomUserDetails createUserDetails(){
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(UserRole.ROLE_AUTH_USER.getValue()));
+        return new CustomUserDetails(1L, "test@gmail.com", "juseung", 1L, authorities);
+    }
+
 
 }
