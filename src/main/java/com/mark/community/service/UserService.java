@@ -56,6 +56,7 @@ public class UserService {
         } else {
             user = new User(request.getEmail(), password, request.getNickname());
         }
+        user.setRole(UserRole.ROLE_USER);
 
         User registerUser = userRepository.save(user);
 
